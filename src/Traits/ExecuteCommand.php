@@ -10,7 +10,7 @@ trait ExecuteCommand
 {
     use LocatesPhpBinary;
 
-    protected function executeCommand(string $command, bool $skip_queue = false, string $type = 'install'): void
+    protected function executeCommand(string $command, bool $skip_queue = false, string $type = 'install', bool $withoutInteraction = false): void
     {
         $envs = [
             'install' => [
@@ -22,6 +22,7 @@ trait ExecuteCommand
                 'NATIVEPHP_PHP_BINARY_PATH' => base_path($this->phpBinaryPath()),
                 'NATIVEPHP_CERTIFICATE_FILE_PATH' => base_path($this->binaryPackageDirectory().'cacert.pem'),
                 'NATIVE_PHP_SKIP_QUEUE' => $skip_queue,
+                'NATIVEPHP_BUILDING' => false
             ],
         ];
 
@@ -29,7 +30,7 @@ trait ExecuteCommand
         Process::path(__DIR__.'/../../resources/js/')
             ->env($envs[$type])
             ->forever()
-            ->tty(PHP_OS_FAMILY != 'Windows')
+            ->tty(!$withoutInteraction && PHP_OS_FAMILY != 'Windows')
             ->run($command, function (string $type, string $output) {
                 if ($this->getOutput()->isVerbose()) {
                     echo $output;
